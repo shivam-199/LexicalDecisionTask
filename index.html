@@ -21,7 +21,14 @@
     </head>
     <body></body>
     <script>
-    
+        window.hideWarning = false;
+        window.addEventListener('beforeunload', (event) => {
+            if (!hideWarning) {
+                event.preventDefault();
+                event.returnValue = '';
+            }
+
+        });
         var firebaseConfig = firebaseConfig;
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
