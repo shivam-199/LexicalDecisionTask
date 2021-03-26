@@ -17,20 +17,12 @@
         <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-database.js"></script>
 
         <link href="jspsych-6.2.0/css/jspsych.css" rel="stylesheet" type="text/css">
+        <script type="text/javascript" src="credentials.js"></script>
     </head>
     <body></body>
     <script>
     
-        var firebaseConfig = {
-            apiKey: "AIzaSyBpZmrPdu0SzoUdZPnpcLJ8kxIZSxEQ2ew",
-            authDomain: "lexical-decision-task.firebaseapp.com",
-            projectId: "lexical-decision-task",
-            storageBucket: "lexical-decision-task.appspot.com",
-            messagingSenderId: "100488246293",
-            appId: "1:100488246293:web:92c5477bb7f0015532ca1c",
-            measurementId: "G-WJ9JYPLHXJ",
-            databaseURL: "https://lexical-decision-task-default-rtdb.firebaseio.com/"
-        };
+        var firebaseConfig = firebaseConfig;
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         var database = firebase.database();
@@ -68,13 +60,11 @@
         }
 
         function cleanData(){
-            console.log("Cleaningdatra")
             var save_data = {};
             var form_data = jsPsych.data.get().filter({trial_type: "survey-html-form"}).json();
             if (form_data) {
                 var responses = JSON.parse(form_data)[0]["responses"];
                 var save_data = JSON.parse(responses);
-                console.log(save_data);
             }
             
             var trial_data = jsPsych.data.get().filter({trial_type: "html-button-response"}).json();
@@ -84,11 +74,9 @@
                 parsed_trial_data.forEach(function(trial) {
                     var trial_string = trial["rt"] + "|" + trial["stimulus"].split("<")[1].substring(3) + "|" + trial["button_pressed"];
                     trials.push(trial_string)
-                    console.log(trial_string);
                 });
                 save_data["trials"] = trials;
             }
-            console.log(save_data);
             write_to_database(save_data);
         };
 
@@ -114,9 +102,9 @@
             `,
             choices: ["C", "c"]
         };
-        // timeline.push(instructions);
+        timeline.push(instructions);
 
-        var word_list = ["Bust", "Hust", "List", "Bist", "Mod", /*"Pod", "Board", "Goard", "Flip", "Glip", "Footage", "Tootage", "Bottle", "Gottle", "Ear", "Lar", "Kitchen", "Titchen", "Shoe", "Phoe", "Sock", "Tock", "Bed", "Med", "Mirror", "Tirror", "Massage", "Nassage", "Table", "Kable", "Bag", "Mag", "Power", "Gower", "Light", "Pight", "Fan", "Gan", "Share", "Phare", "Ampze", "Snekp", "Gnorki", "Pleere", "Nlabe", "Nuckx", "staem", "Pmfa", "jitgh", "Snrpeea"*/];
+        var word_list = ["Bust", "Hust", "List", "Bist", "Mod", "Pod", "Board", "Goard", "Flip", "Glip", "Footage", "Tootage", "Bottle", "Gottle", "Ear", "Lar", "Kitchen", "Titchen", "Shoe", "Phoe", "Sock", "Tock", "Bed", "Med", "Mirror", "Tirror", "Massage", "Nassage", "Table", "Kable", "Bag", "Mag", "Power", "Gower", "Light", "Pight", "Fan", "Gan", "Share", "Phare", "Ampze", "Snekp", "Gnorki", "Pleere", "Nlabe", "Nuckx", "staem", "Pmfa", "jitgh", "Snrpeea"];
         var shuffled_list = shuffle(word_list);
 
         var form_trial = {
@@ -152,7 +140,7 @@
                 </div>
             `,
         };
-        // timeline.push(ending);
+        timeline.push(ending);
 
         jsPsych.init({
             timeline: timeline,
