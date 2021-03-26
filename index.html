@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Lexical Decision Task</title>
+        <meta charset="UTF-8">
+        <script src="jspsych-6.2.0/jspsych.js"></script>
+        <script src="jspsych-6.2.0/plugins/jspsych-html-keyboard-response.js"></script>
+        <script src="jspsych-6.2.0/plugins/jspsych-survey-html-form.js"></script>
+        <script src="jspsych-6.2.0/plugins/jspsych-html-button-response.js"></script>
+        
+        <!-- The core Firebase JS SDK is always required and must be listed first -->
+        <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-app.js"></script>
+
+        <!-- TODO: Add SDKs for Firebase products that you want to use
+            https://firebase.google.com/docs/web/setup#available-libraries -->
+        <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-analytics.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-database.js"></script>
+
+        <link href="jspsych-6.2.0/css/jspsych.css" rel="stylesheet" type="text/css">
+    </head>
+    <body></body>
+    <script>
+    
+        var firebaseConfig = {
+            apiKey: "AIzaSyBpZmrPdu0SzoUdZPnpcLJ8kxIZSxEQ2ew",
+            authDomain: "lexical-decision-task.firebaseapp.com",
+            projectId: "lexical-decision-task",
+            storageBucket: "lexical-decision-task.appspot.com",
+            messagingSenderId: "100488246293",
+            appId: "1:100488246293:web:92c5477bb7f0015532ca1c",
+            measurementId: "G-WJ9JYPLHXJ",
+            databaseURL: "https://lexical-decision-task-default-rtdb.firebaseio.com/"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        var database = firebase.database();
+
+        function shuffle(array) {
+            var currentIndex = array.length, temporaryValue, randomIndex;
+
+            // While there remain elements to shuffle...
+            while (0 !== currentIndex) {
+
+                // Pick a remaining element...
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex -= 1;
+
+                // And swap it with the current element.
+                temporaryValue = array[currentIndex];
+                array[currentIndex] = array[randomIndex];
+                array[randomIndex] = temporaryValue;
+            }
+
+            return array;
+        };
+
+        function createUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        function write_to_database(data){
+            firebase.database().ref("participants/" + createUUID()).set({
+                ...data
+            });
+        }
+
+        function cleanData(){
+            console.log("Cleaningdatra")
+            var save_data = {};
+            var form_data = jsPsych.data.get().filter({trial_type: "survey-html-form"}).json();
+            if (form_data) {
+                var responses = JSON.parse(form_data)[0]["responses"];
+                var save_data = JSON.parse(responses);
+                console.log(save_data);
+            }
+            
+            var trial_data = jsPsych.data.get().filter({trial_type: "html-button-response"}).json();
+            var parsed_trial_data = JSON.parse(trial_data);
+            var trials = []
+            if (parsed_trial_data) {
+                parsed_trial_data.forEach(function(trial) {
+                    var trial_string = trial["rt"] + "|" + trial["stimulus"].split("<")[1].substring(3) + "|" + trial["button_pressed"];
+                    trials.push(trial_string)
+                    console.log(trial_string);
+                });
+                save_data["trials"] = trials;
+            }
+            console.log(save_data);
+            write_to_database(save_data);
+        };
+
+        var timeline = [];
+
+        var instructions = {
+            type: "html-keyboard-response",
+            stimulus: `
+                <div style="max-width:80%; margin:0px auto">
+                    <h1>Lexical Decision Task</h1>
+                    <h3 style="text-align:left;font-size:16px;line-height:1.4em">Who is conducting this study?</h3>
+                    <p style="text-align:left;font-size:14px">I, Shivam Chaudhary, am a Masters student at the Centre of Behavioral and Cognitive Sciences, University of Allahabad. I am conducting this study as part of my research project.</p>
+                    <h3 style="text-align:left;font-size:16px;line-height:1.4em">What do you have to do?</h3>
+                    <p style="text-align:left;font-size:14px">Once you read this form and give your consent by entering your Demographic Details, following which you will be presented with a set of words. This is a decision making task. There are NO right or wrong answers and it will take approximately 15-20 minutes to complete the full experiment. Your task is to determine whether a word is <b>Word</b> or <b>Non word</b>.</p>
+                    <h3 style="text-align:left;font-size:16px;line-height:1.4em">Confidentiality</h3>
+                    <p style="text-align:left;font-size:14px">Your answers will be kept anonymous (i.e. your name will not be revealed while analyzing, discussing or presenting the results of this study). Data will be analyzed and presented at the group level, with no reference to individuals in the project or in any subsequent presentation.</p>
+                    <h3 style="text-align:left;font-size:16px;line-height:1.4em">Participant Rights</h3>
+                    <p style="text-align:left;font-size:14px">Participation in this study is voluntary. You can choose to leave the study at any time by closing the browser. Any questions you have both before, during and after the study will be answered. Your personal details will be kept confidential. Results will be analyzed for the whole group, not individually. </p>
+                    <h3 style="text-align:left;font-size:16px;line-height:1.4em">Researcher's Contact</h3>
+                    <p style="text-align:left;font-size:14px">In case you have any questions related to the study or your participant rights, you can contact the researcher before, during and after the study. If you have any difficulty in understanding the words/ statements/ instructions while responding, please clarify your doubts/ queries with the researcher on <b>shivam.c@cbcs.ac.in </b> before you continue.</p>
+                    <h3 style="text-align:right">Press C to continue</h3>
+                </div>
+            `,
+            choices: ["C", "c"]
+        };
+        // timeline.push(instructions);
+
+        var word_list = ["Bust", "Hust", "List", "Bist", "Mod", /*"Pod", "Board", "Goard", "Flip", "Glip", "Footage", "Tootage", "Bottle", "Gottle", "Ear", "Lar", "Kitchen", "Titchen", "Shoe", "Phoe", "Sock", "Tock", "Bed", "Med", "Mirror", "Tirror", "Massage", "Nassage", "Table", "Kable", "Bag", "Mag", "Power", "Gower", "Light", "Pight", "Fan", "Gan", "Share", "Phare", "Ampze", "Snekp", "Gnorki", "Pleere", "Nlabe", "Nuckx", "staem", "Pmfa", "jitgh", "Snrpeea"*/];
+        var shuffled_list = shuffle(word_list);
+
+        var form_trial = {
+            type: 'survey-html-form',
+            preamble: '<h3>Please enter your personal information</b> </h3>',
+            html: `
+                <div style="text-align:left">
+                    <h5 style="margin:0px">Name: &nbsp;<input name="name" id="participant-name" type="text" required /></h5>
+                    <h5 style="margin:0px">Email:  &nbsp; <input name="email" type="email" required /></h5>
+                    <h5 style="margin:0px">Age: &nbsp; &nbsp; &nbsp;<input name="age" type="number"  required/></h5> <br>
+                </div>
+            `,
+            autofocus: 'participant-name'
+        };
+        timeline.push(form_trial);
+
+        shuffled_list.forEach(function(word) {
+            var trial = {
+                type: 'html-button-response',
+                stimulus: '<h1>'+ word +'</h1> <br>',
+                choices: ['Word', 'Non Word'],
+                prompt: "<p>Is this a Word or Non Word?</p>"
+            };
+            timeline.push(trial);
+        });
+
+        var ending = {
+            type: "html-keyboard-response",
+            stimulus: `
+                <div style="margin:40px auto">
+                    <h1>Thank you for taking part in the experiment!</h1>
+                    <h3>You may now safely close the browser window</h3>
+                </div>
+            `,
+        };
+        // timeline.push(ending);
+
+        jsPsych.init({
+            timeline: timeline,
+            on_finish: cleanData,
+        })
+
+    </script>
+</html>
